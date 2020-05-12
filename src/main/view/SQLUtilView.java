@@ -10,12 +10,9 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import main.HistoryData;
 import main.controller.SQLUtilControllerInterface;
-import main.model.InputObserver;
-import main.model.OutputObserver;
-import main.model.PasteObserver;
-import main.model.SQLUtilModelInterface;
+import main.model.*;
 
-public class SQLUtilView extends HBox implements OutputObserver, InputObserver, PasteObserver {
+public class SQLUtilView extends HBox implements OutputObserver, InputObserver, PasteObserver, HistoryObserver {
     private SQLUtilControllerInterface controller;
     private SQLUtilModelInterface model;
 
@@ -53,7 +50,6 @@ public class SQLUtilView extends HBox implements OutputObserver, InputObserver, 
     private Button insertSplitButton = new Button("Insert Statement Split");
     // history
     private ListView<HistoryData> historyList = new ListView<>();
-    private int count = 1;
 
     public SQLUtilView(SQLUtilModelInterface model) {
         this.model = model;
@@ -61,6 +57,7 @@ public class SQLUtilView extends HBox implements OutputObserver, InputObserver, 
         model.registerInputObserver(this);
         model.registerOutputObserver(this);
         model.registerPasteObserver(this);
+        model.registerHistoryObserver(this);
     }
 
     public void setController(SQLUtilControllerInterface controller) {
@@ -80,6 +77,11 @@ public class SQLUtilView extends HBox implements OutputObserver, InputObserver, 
     @Override
     public void updatePasteLink(String pasteURL) {
         pasteLink.setText(pasteURL);
+    }
+
+    @Override
+    public void addHistory(HistoryData historyData) {
+        historyList.getItems().add(historyData);
     }
 
     public void createView() {

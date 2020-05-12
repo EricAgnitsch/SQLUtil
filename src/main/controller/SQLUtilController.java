@@ -48,12 +48,13 @@ public class SQLUtilController implements SQLUtilControllerInterface {
             catch (Exception ex) {
                 ex.printStackTrace();
             }
+            model.addHistoryData("Loaded teknik paste", pasteURL);
         }
     }
 
     @Override
     public void format(String input) {
-        new Thread(() -> {
+//        new Thread(() -> {
             try {
                 String command = "curl --data-urlencode \"rqst_input_sql=" + input + "\" http://www.gudusoft.com/format.php";
                 Process process = Runtime.getRuntime().exec(command);
@@ -62,12 +63,14 @@ public class SQLUtilController implements SQLUtilControllerInterface {
                 String result = s.hasNext() ? s.next() : "";
                 JSONParser jsonParser = new JSONParser();
                 JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
-                model.setOutputText(jsonObject.get("rspn_formatted_sql").toString());
+                String output = jsonObject.get("rspn_formatted_sql").toString();
+                model.setOutputText(output);
+                model.addHistoryData("Format SQL", output);
             }
             catch (Exception e) {
                 e.printStackTrace();
             }
-        }).start();
+//        }).start();
     }
 
     @Override
@@ -84,6 +87,7 @@ public class SQLUtilController implements SQLUtilControllerInterface {
             JSONObject jsonObject = (JSONObject) jsonParser.parse(pasteURL);
             pasteURL = ((JSONObject) jsonObject.get("result")).get("url").toString();
             model.setPasteLink(pasteURL);
+            model.addHistoryData("Paste URL created", pasteURL);
             if (shouldOpenLink)
                 openLink(pasteURL);
         }
@@ -101,12 +105,14 @@ public class SQLUtilController implements SQLUtilControllerInterface {
     public void split(String input, String splitStr) {
         String outputText = input.replaceAll(splitStr, splitStr + "\n");
         model.setOutputText(outputText);
+        model.addHistoryData("Split", outputText);
     }
 
     @Override
     public void replaceAll(String input, String oldStr, String newStr) {
-        String outputText = input.replaceAll("[" + oldStr + "]", newStr);
+        String outputText = input.replace(oldStr, newStr);
         model.setOutputText(outputText);
+        model.addHistoryData("Replaced '" + oldStr + "' with '" + newStr + "'", outputText);
     }
 
     private File createTempFile(String paste) {

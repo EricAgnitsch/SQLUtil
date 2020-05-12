@@ -3,3 +3,5 @@
 *.iws
 out/
 .idea_modules/
+target/
+target/!*.jar

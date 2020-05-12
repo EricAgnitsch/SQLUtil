@@ -1,18 +1,19 @@
 package main.model;
 
+import main.HistoryData;
+
 import java.util.ArrayList;
 
 public class SQLUtilModel implements SQLUtilModelInterface {
     private ArrayList<InputObserver> inputObservers = new ArrayList<>();
     private ArrayList<OutputObserver> outputObservers = new ArrayList<>();
     private ArrayList<PasteObserver> pasteObservers = new ArrayList<>();
-    private String inputText;
-    private String outputText;
-    private String pasteURL;
+    private ArrayList<HistoryObserver> historyObservers = new ArrayList<>();
+
+    private int count = 1;
 
     @Override
     public void setInputText(String inputText) {
-        this.inputText = inputText;
         notifyInputObservers(inputText);
     }
 
@@ -29,7 +30,6 @@ public class SQLUtilModel implements SQLUtilModelInterface {
 
     @Override
     public void setOutputText(String outputText) {
-        this.outputText = outputText;
         notifyOutputObservers(outputText);
     }
 
@@ -46,7 +46,6 @@ public class SQLUtilModel implements SQLUtilModelInterface {
 
     @Override
     public void setPasteLink(String pasteURL) {
-        this.pasteURL = pasteURL;
         notifyPasteObservers(pasteURL);
     }
 
@@ -59,5 +58,22 @@ public class SQLUtilModel implements SQLUtilModelInterface {
     public void notifyPasteObservers(String pasteURL) {
         for (PasteObserver pasteObserver: pasteObservers)
             pasteObserver.updatePasteLink(pasteURL);
+    }
+
+    @Override
+    public void addHistoryData(String name, String content) {
+        notifyHistoryObservers(new HistoryData(count + " | " + name, content));
+        count++;
+    }
+
+    @Override
+    public void registerHistoryObserver(HistoryObserver o) {
+        historyObservers.add(o);
+    }
+
+    @Override
+    public void notifyHistoryObservers(HistoryData historyData) {
+        for (HistoryObserver historyObserver: historyObservers)
+            historyObserver.addHistory(historyData);
     }
 }

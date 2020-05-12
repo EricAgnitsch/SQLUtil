@@ -1,5 +1,7 @@
 package main.model;
 
+import main.HistoryData;
+
 public interface SQLUtilModelInterface {
     void setInputText(String inputText);
     void registerInputObserver(InputObserver o);
@@ -10,4 +12,7 @@ public interface SQLUtilModelInterface {
     void setPasteLink(String pasteURL);
     void registerPasteObserver(PasteObserver o);
     void notifyPasteObservers(String pasteURL);
+    void addHistoryData(String name, String content);
+    void registerHistoryObserver(HistoryObserver o);
+    void notifyHistoryObservers(HistoryData historyData);
 }
