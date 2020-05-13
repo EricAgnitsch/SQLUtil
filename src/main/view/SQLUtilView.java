@@ -12,19 +12,10 @@ import main.HistoryData;
 import main.controller.SQLUtilControllerInterface;
 import main.model.*;
 
-public class SQLUtilView extends HBox implements OutputObserver, InputObserver, PasteObserver, HistoryObserver {
+public class SQLUtilView extends HBox implements OutputObserver, PasteObserver, HistoryObserver {
     private SQLUtilControllerInterface controller;
     private SQLUtilModelInterface model;
 
-    // load paste
-    private TitledPane loadPasteLayout = new TitledPane();
-    private Label loadPasteLabel = new Label("Insert link (https://p.teknik.io/#####):");
-    private TextField loadPasteTextField = new TextField();
-    private Button loadPasteButton = new Button("Load to input");
-    // input
-    private VBox inputLayout = new VBox();
-    private Label inputLabel = new Label("Input (CTRL + ENTER to format SQL):");
-    private TextArea inputArea = new TextArea();
     // output
     private VBox outputLayout = new VBox();
     private Label outputLabel = new Label("Output (CTRL + ENTER to create pastebin URL):");
@@ -54,7 +45,6 @@ public class SQLUtilView extends HBox implements OutputObserver, InputObserver, 
     public SQLUtilView(SQLUtilModelInterface model) {
         this.model = model;
 
-        model.registerInputObserver(this);
         model.registerOutputObserver(this);
         model.registerPasteObserver(this);
         model.registerHistoryObserver(this);
@@ -62,11 +52,6 @@ public class SQLUtilView extends HBox implements OutputObserver, InputObserver, 
 
     public void setController(SQLUtilControllerInterface controller) {
         this.controller = controller;
-    }
-
-    @Override
-    public void updateInputText(String inputText) {
-        inputArea.setText(inputText);
     }
 
     @Override
@@ -85,8 +70,8 @@ public class SQLUtilView extends HBox implements OutputObserver, InputObserver, 
     }
 
     public void createView() {
-        loadPasteInit();
-        inputInit();
+        LoadPasteView loadPasteView = new LoadPasteView(controller);
+        InputView inputView = new InputView(controller, model);
         outputInit();
         pasteInit();
         splitInit();
@@ -97,7 +82,11 @@ public class SQLUtilView extends HBox implements OutputObserver, InputObserver, 
         VBox leftContent = new VBox();
         leftContent.setPadding(new Insets(8, 8, 8, 8));
         leftContent.setSpacing(4);
-        leftContent.getChildren().addAll(loadPasteLayout, inputLayout, outputLayout, pasteLayout);
+        leftContent.getChildren().addAll(
+                loadPasteView.getLayout(),
+                inputView.getLayout(),
+                outputLayout,
+                pasteLayout);
 
         VBox rightContent = new VBox();
         rightContent.setPadding(new Insets(8,8,8,8));
@@ -106,35 +95,6 @@ public class SQLUtilView extends HBox implements OutputObserver, InputObserver, 
 
         HBox.setHgrow(leftContent, Priority.ALWAYS);
         getChildren().addAll(leftContent, rightContent);
-    }
-
-    private void loadPasteInit() {
-        // layout
-        HBox layout = new HBox();
-        layout.setSpacing(4);
-        align(loadPasteLabel, loadPasteTextField);
-        HBox.setHgrow(loadPasteTextField, Priority.ALWAYS);
-        layout.getChildren().addAll(loadPasteLabel, loadPasteTextField, loadPasteButton);
-        loadPasteLayout.setText("Load paste to input");
-        loadPasteLayout.setContent(layout);
-
-        // controls
-        loadPasteButton.setOnAction(e -> controller.loadPaste(loadPasteTextField.getText()));
-    }
-
-    private void inputInit() {
-        // layout
-        inputLayout.getChildren().addAll(inputLabel, inputArea);
-        inputLayout.setSpacing(4);
-        VBox.setVgrow(inputLayout, Priority.ALWAYS);
-        VBox.setVgrow(inputArea, Priority.ALWAYS);
-
-        // controls
-        inputArea.setOnKeyPressed(e -> {
-            String input = inputArea.getText();
-            if (!input.isEmpty() && e.isControlDown() && e.getCode() == KeyCode.ENTER)
-                controller.format(input);
-        });
     }
 
     private void outputInit() {
