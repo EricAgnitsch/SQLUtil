@@ -74,7 +74,7 @@ public class SQLUtilController implements SQLUtilControllerInterface {
     }
 
     @Override
-    public void createPaste(String output, boolean shouldOpenLink) {
+    public void createPaste(String output) {
         try {
             File file = createTempFile(output);
             String command = "curl --data \"title=Paste%20Title&expireUnit=view&expireLength=3\" " +
@@ -88,8 +88,6 @@ public class SQLUtilController implements SQLUtilControllerInterface {
             pasteURL = ((JSONObject) jsonObject.get("result")).get("url").toString();
             model.setPasteLink(pasteURL);
             model.addHistoryData("Paste URL created", pasteURL);
-            if (shouldOpenLink)
-                openLink(pasteURL);
         }
         catch (Exception e) {
             e.printStackTrace();

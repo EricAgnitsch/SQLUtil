@@ -30,6 +30,10 @@ public class InputView extends Layout implements InputObserver {
         });
     }
 
+    public String getInputText() {
+        return inputArea.getText();
+    }
+
     @Override
     public void updateInputText(String inputText) {
         inputArea.setText(inputText);
