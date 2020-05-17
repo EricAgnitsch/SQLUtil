@@ -7,9 +7,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import main.controller.SQLUtilControllerInterface;
+import main.model.AbstractSQLUtilModel;
 import main.model.PasteObserver;
-import main.model.SQLUtilModelInterface;
 
 public class PasteView extends Layout implements PasteObserver {
     private HBox pasteLayout = new HBox();
@@ -17,7 +16,7 @@ public class PasteView extends Layout implements PasteObserver {
     private Hyperlink pasteLink = new Hyperlink();
     private CheckBox pasteCheck = new CheckBox("Automatically open paste link in browser");
 
-    public PasteView(SQLUtilControllerInterface controller, SQLUtilModelInterface model) {
+    public PasteView(AbstractSQLUtilModel model) {
         model.registerPasteObserver(this);
 
         Region reg = new Region();
@@ -26,8 +25,14 @@ public class PasteView extends Layout implements PasteObserver {
         align(pasteCheck, pasteLink);
         pasteLayout.getChildren().addAll(pasteLabel, pasteLink, reg, pasteCheck);
         pasteLayout.setSpacing(4);
+    }
 
-        pasteLink.setOnAction(e -> controller.openLink(pasteLink.getText()));
+    public Hyperlink getPasteLink() {
+        return pasteLink;
+    }
+
+    public CheckBox getPasteCheck() {
+        return pasteCheck;
     }
 
     @Override

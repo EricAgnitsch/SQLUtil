@@ -17,10 +17,10 @@ public class SQLApp extends Application {
     public void start(Stage window) throws Exception {
         window.setTitle("SQL Utility");
 
-        SQLUtilModelInterface model = new SQLUtilModel();
+        AbstractSQLUtilModel model = new SQLUtilModel();
+        model.setHostServices(getHostServices());
         SQLUtilView view = new SQLUtilView(model);
-        SQLUtilController controller = new SQLUtilController(view, model);
-        controller.setHostServices(getHostServices());
+        new SQLUtilController(view, model);
 
         StackPane layout = new StackPane();
         layout.getChildren().add(view);

@@ -7,7 +7,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import main.controller.SQLUtilControllerInterface;
 
 public class SplitView extends Layout{
     private TitledPane splitLayout = new TitledPane();
@@ -15,7 +14,7 @@ public class SplitView extends Layout{
     private TextField splitTextField = new TextField();
     private Button splitButton = new Button("Split");
 
-    public SplitView(SQLUtilControllerInterface controller) {
+    public SplitView() {
         VBox layout = new VBox();
         layout.setSpacing(4);
         HBox splitContent = new HBox();
@@ -29,10 +28,14 @@ public class SplitView extends Layout{
         layout.getChildren().addAll(splitContent, splitButton);
         splitLayout.setText("Split to new line");
         splitLayout.setContent(layout);
+    }
 
-        splitButton.setOnAction(e -> controller.split(
-                getInputText(),
-                splitTextField.getText()));
+    public TextField getSplitTextField() {
+        return splitTextField;
+    }
+
+    public Button getSplitButton() {
+        return splitButton;
     }
 
     @Override

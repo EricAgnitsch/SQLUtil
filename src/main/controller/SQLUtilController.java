@@ -1,130 +1,96 @@
 package main.controller;
 
-import javafx.application.HostServices;
-import main.model.SQLUtilModelInterface;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import main.HistoryData;
+import main.model.AbstractSQLUtilModel;
 import main.view.SQLUtilView;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.util.Scanner;
 
 public class SQLUtilController implements SQLUtilControllerInterface {
-    private SQLUtilView view;
-    private SQLUtilModelInterface model;
+    private AbstractSQLUtilModel model;
 
-    private HostServices hostServices;
+    private TextArea inputArea;
+    private Button loadPasteButton;
+    private TextField loadPasteTextField;
+    private TextArea outputArea;
+    private CheckBox pasteCheck;
+    private Hyperlink pasteLink;
+    private Button splitButton;
+    private TextField splitTextField;
+    private Button replaceButton;
+    private TextField oldCharTextField;
+    private TextField newCharTextField;
+    private ListView<HistoryData> historyList;
 
-    public SQLUtilController(SQLUtilView view, SQLUtilModelInterface model) {
-        this.view = view;
+    public SQLUtilController(SQLUtilView view, AbstractSQLUtilModel model) {
         this.model = model;
 
-        view.setController(this);
         view.createView();
+
+        inputArea = view.getInputArea();
+        loadPasteButton = view.getLoadPasteButton();
+        loadPasteTextField = view.getLoadPasteTextField();
+        outputArea = view.getOutputArea();
+        pasteCheck = view.getPasteCheck();
+        pasteLink = view.getPasteLink();
+        splitButton = view.getSplitButton();
+        splitTextField = view.getSplitTextField();
+        replaceButton = view.getReplaceButton();
+        oldCharTextField = view.getOldCharTextField();
+        newCharTextField = view.getNewCharTextField();
+        historyList = view.getHistoryList();
+
+        createControllers();
     }
 
-    public void setHostServices(HostServices hostServices) {
-        this.hostServices = hostServices;
-    }
+    private void createControllers() {
+        // load paste view
+        loadPasteButton.setOnAction(e -> model.loadPaste(loadPasteTextField.getText()));
 
-    @Override
-    public void loadPaste(String pasteURL) {
-        if (pasteURL.contains("https://p.teknik.io/")) {
-            try {
-                pasteURL = pasteURL.replace("https://p.teknik.io/", "https://p.teknik.io/Raw/");
-                String command = "curl " + pasteURL;
-                Process process = Runtime.getRuntime().exec(command);
-                InputStream inputStream = process.getInputStream();
-                Scanner s = new Scanner(inputStream).useDelimiter("\\A");
-                String result = s.hasNext() ? s.next() : "";
-                if (result.startsWith("<!DOCTYPE html>"))
-                    model.setInputText("[teknik paste not found]");
-                else
-                    model.setInputText(result);
-            }
-            catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            model.addHistoryData("Loaded teknik paste", pasteURL);
-        }
-    }
+        // input view
+        inputArea.setOnKeyPressed(e -> {
+            String input = inputArea.getText();
+            if (!input.isEmpty() && e.isControlDown() && e.getCode() == KeyCode.ENTER)
+                model.format(input);
+        });
 
-    @Override
-    public void format(String input) {
-//        new Thread(() -> {
-            try {
-                String command = "curl --data-urlencode \"rqst_input_sql=" + input + "\" http://www.gudusoft.com/format.php";
-                Process process = Runtime.getRuntime().exec(command);
-                InputStream inputStream = process.getInputStream();
-                Scanner s = new Scanner(inputStream).useDelimiter("\\A");
-                String result = s.hasNext() ? s.next() : "";
-                JSONParser jsonParser = new JSONParser();
-                JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
-                String output = jsonObject.get("rspn_formatted_sql").toString();
-                model.setOutputText(output);
-                model.addHistoryData("Format SQL", output);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-//        }).start();
-    }
+        // output view
+        outputArea.setOnKeyPressed(e -> {
+            String output = outputArea.getText();
+            if (!output.isEmpty() && e.isControlDown() && e.getCode() == KeyCode.ENTER)
+                model.createPaste(output);
+            if (pasteCheck.isSelected())
+                model.openLink(pasteLink.getText());
+        });
 
-    @Override
-    public void createPaste(String output) {
-        try {
-            File file = createTempFile(output);
-            String command = "curl --data \"title=Paste%20Title&expireUnit=view&expireLength=3\" " +
-                    "--data-urlencode \"code@" + file.getPath() + "\" https://api.teknik.io/v1/Paste";
-            Process process = Runtime.getRuntime().exec(command);
-            InputStream inputStream = process.getInputStream();
-            Scanner s = new Scanner(inputStream).useDelimiter("\\A");
-            String pasteURL = s.hasNext() ? s.next() : "[Failed paste]";
-            JSONParser jsonParser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) jsonParser.parse(pasteURL);
-            pasteURL = ((JSONObject) jsonObject.get("result")).get("url").toString();
-            model.setPasteLink(pasteURL);
-            model.addHistoryData("Paste URL created", pasteURL);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+        // paste view
+        pasteLink.setOnAction(e -> model.openLink(pasteLink.getText()));
 
-    @Override
-    public void openLink(String linkURL) {
-        hostServices.showDocument(linkURL);
-    }
+        // split view
+        splitButton.setOnAction(e -> model.split(
+                inputArea.getText(),
+                splitTextField.getText()));
 
-    @Override
-    public void split(String input, String splitStr) {
-        String outputText = input.replaceAll(splitStr, splitStr + "\n");
-        model.setOutputText(outputText);
-        model.addHistoryData("Split", outputText);
-    }
+        // replace view
+        replaceButton.setOnAction(e -> model.replaceAll(
+                inputArea.getText(),
+                oldCharTextField.getText(),
+                newCharTextField.getText()));
 
-    @Override
-    public void replaceAll(String input, String oldStr, String newStr) {
-        String outputText = input.replace(oldStr, newStr);
-        model.setOutputText(outputText);
-        model.addHistoryData("Replaced '" + oldStr + "' with '" + newStr + "'", outputText);
-    }
-
-    private File createTempFile(String paste) {
-        try {
-            File file = File.createTempFile("paste", ".txt");
-            file.deleteOnExit();
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
-            bufferedWriter.write(paste);
-            bufferedWriter.close();
-            return file;
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        // history view
+        historyList.setCellFactory(param ->
+                new ListCell<>() {
+                    @Override
+                    protected void updateItem(HistoryData item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty)
+                            setText(null);
+                        if (item != null)
+                            setText(item.getName());
+                    }
+                }
+        );
+        historyList.getSelectionModel().selectedItemProperty()
+                .addListener((obv, oldVal, newVal) -> outputArea.setText(newVal.getContent()));
     }
 }

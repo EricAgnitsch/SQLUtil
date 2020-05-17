@@ -7,7 +7,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import main.controller.SQLUtilControllerInterface;
 
 public class LoadPasteView extends Layout {
     private TitledPane loadPasteLayout = new TitledPane();
@@ -15,7 +14,7 @@ public class LoadPasteView extends Layout {
     private TextField loadPasteTextField = new TextField();
     private Button loadPasteButton = new Button("Load to input");
 
-    public LoadPasteView(SQLUtilControllerInterface controller) {
+    public LoadPasteView() {
         HBox layout = new HBox();
         layout.setSpacing(4);
         align(loadPasteLabel, loadPasteTextField);
@@ -23,8 +22,14 @@ public class LoadPasteView extends Layout {
         layout.getChildren().addAll(loadPasteLabel, loadPasteTextField, loadPasteButton);
         loadPasteLayout.setText("Load paste to input");
         loadPasteLayout.setContent(layout);
+    }
 
-        loadPasteButton.setOnAction(e -> controller.loadPaste(loadPasteTextField.getText()));
+    public TextField getLoadPasteTextField() {
+        return loadPasteTextField;
+    }
+
+    public Button getLoadPasteButton() {
+        return loadPasteButton;
     }
 
     @Override

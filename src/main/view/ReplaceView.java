@@ -7,7 +7,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import main.controller.SQLUtilControllerInterface;
 
 public class ReplaceView extends Layout {
     private TitledPane replaceLayout = new TitledPane();
@@ -17,7 +16,7 @@ public class ReplaceView extends Layout {
     private TextField newCharTextField = new TextField();
     private Button replaceButton = new Button("Replace");
 
-    public ReplaceView(SQLUtilControllerInterface controller) {
+    public ReplaceView() {
         VBox layout = new VBox();
         layout.setSpacing(4);
         HBox oldCharLayout = new HBox();
@@ -37,11 +36,18 @@ public class ReplaceView extends Layout {
         layout.getChildren().addAll(oldCharLayout, newCharLayout, replaceButton);
         replaceLayout.setText("Replace characters");
         replaceLayout.setContent(layout);
+    }
 
-        replaceButton.setOnAction(e -> controller.replaceAll(
-                getInputText(),
-                oldCharTextField.getText(),
-                newCharTextField.getText()));
+    public TextField getOldCharTextField() {
+        return oldCharTextField;
+    }
+
+    public TextField getNewCharTextField() {
+        return newCharTextField;
+    }
+
+    public Button getReplaceButton() {
+        return replaceButton;
     }
 
     @Override

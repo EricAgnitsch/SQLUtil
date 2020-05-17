@@ -1,18 +1,15 @@
 package main.view;
 
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import main.HistoryData;
-import main.controller.SQLUtilControllerInterface;
 import main.model.*;
 
-public class SQLUtilView extends HBox implements HistoryObserver {
-    private SQLUtilControllerInterface controller;
-    private SQLUtilModelInterface model;
+public class SQLUtilView extends HBox implements SQLUtilViewInterface {
+    private AbstractSQLUtilModel model;
 
     private LoadPasteView loadPasteView;
     private InputView inputView;
@@ -20,36 +17,24 @@ public class SQLUtilView extends HBox implements HistoryObserver {
     private PasteView pasteView;
     private SplitView splitView;
     private ReplaceView replaceView;
+    private HistoryView historyView;
 
     // insert split
     private Button insertSplitButton = new Button("Insert Statement Split");
     // history
-    private ListView<HistoryData> historyList = new ListView<>();
-
-    public SQLUtilView(SQLUtilModelInterface model) {
+    public SQLUtilView(AbstractSQLUtilModel model) {
         this.model = model;
-
-        model.registerHistoryObserver(this);
-    }
-
-    public void setController(SQLUtilControllerInterface controller) {
-        this.controller = controller;
-    }
-
-    @Override
-    public void addHistory(HistoryData historyData) {
-        historyList.getItems().add(historyData);
     }
 
     public void createView() {
-        loadPasteView = new LoadPasteView(controller);
-        inputView = new InputView(controller, model);
-        outputView = new OutputView(controller, model);
-        pasteView = new PasteView(controller, model);
-        splitView = new SplitView(controller);
+        loadPasteView = new LoadPasteView();
+        inputView = new InputView(model);
+        outputView = new OutputView(model);
+        pasteView = new PasteView(model);
+        splitView = new SplitView();
         replaceView = new ReplaceView();
         insertSplitInit();
-        historyInit();
+        historyView = new HistoryView(model);
 
         VBox leftContent = new VBox();
         leftContent.setPadding(new Insets(8, 8, 8, 8));
@@ -67,7 +52,7 @@ public class SQLUtilView extends HBox implements HistoryObserver {
                 splitView.getLayout(),
                 replaceView.getLayout(),
                 insertSplitButton,
-                historyList);
+                historyView.getLayout());
 
         HBox.setHgrow(leftContent, Priority.ALWAYS);
         getChildren().addAll(leftContent, rightContent);
@@ -75,32 +60,68 @@ public class SQLUtilView extends HBox implements HistoryObserver {
 
     private void insertSplitInit() {
         // layout
-        insertSplitButton.prefWidthProperty().bind(replaceLayout.widthProperty());
+//        insertSplitButton.prefWidthProperty().bind(replaceLayout.widthProperty());
         // controls
         insertSplitButton.setDisable(true);
     }
 
-    private void historyInit() {
-        // layout
-        VBox.setVgrow(historyList, Priority.ALWAYS);
-        // controls
-        historyList.setCellFactory(param ->
-                new ListCell<>() {
-                    @Override
-                    protected void updateItem(HistoryData item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty)
-                            setText(null);
-                        if (item != null)
-                            setText(item.getName());
-                    }
-                }
-        );
-        historyList.getSelectionModel().selectedItemProperty()
-                .addListener((obv, oldVal, newVal) -> outputArea.setText(newVal.getContent()));
+    @Override
+    public TextArea getInputArea() {
+        return inputView.getInputArea();
     }
 
-    public String getInputText() {
-        return inputView.getInputText();
+    @Override
+    public TextField getLoadPasteTextField() {
+        return loadPasteView.getLoadPasteTextField();
+    }
+
+    @Override
+    public Button getLoadPasteButton() {
+        return loadPasteView.getLoadPasteButton();
+    }
+
+    @Override
+    public TextArea getOutputArea() {
+        return outputView.getOutputArea();
+    }
+
+    @Override
+    public CheckBox getPasteCheck() {
+        return pasteView.getPasteCheck();
+    }
+
+    @Override
+    public Hyperlink getPasteLink() {
+        return pasteView.getPasteLink();
+    }
+
+    @Override
+    public TextField getSplitTextField() {
+        return splitView.getSplitTextField();
+    }
+
+    @Override
+    public Button getSplitButton() {
+        return splitView.getSplitButton();
+    }
+
+    @Override
+    public TextField getOldCharTextField() {
+        return replaceView.getOldCharTextField();
+    }
+
+    @Override
+    public TextField getNewCharTextField() {
+        return replaceView.getNewCharTextField();
+    }
+
+    @Override
+    public Button getReplaceButton() {
+        return replaceView.getReplaceButton();
+    }
+
+    @Override
+    public ListView<HistoryData> getHistoryList() {
+        return historyView.getHistoryList();
     }
 }
